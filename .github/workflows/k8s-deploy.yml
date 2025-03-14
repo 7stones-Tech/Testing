@@ -1,0 +1,39 @@
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches:
+      - main  # Runs on push to the 'main' branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install doctl (DigitalOcean CLI)
+        run: |
+          curl -sL https://github.com/digitalocean/doctl/releases/latest/download/doctl-$(uname -s)-$(uname -m) -o doctl
+          chmod +x doctl
+          sudo mv doctl /usr/local/bin/
+
+      - name: Authenticate with DigitalOcean
+        env:
+          DO_API_TOKEN: ${{ secrets.DO_ACCESS_TOKEN }}
+        run: doctl auth init --access-token "$DO_API_TOKEN"
+
+      - name: Configure kubectl
+        run: |
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 --decode > ~/.kube/config
+          kubectl config use-context do-blr1-main-pool  # Change this to match your cluster
+
+      - name: Deploy Web App
+        run: kubectl apply -f k8s/web/production.yml
+
+      - name: Deploy Mobile App
+        run: kubectl apply -f k8s/mobile/production.yml
+
+      - name: Deploy iOS App
+        run: kubectl apply -f k8s/ios/production.yml
