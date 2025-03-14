@@ -38,7 +38,7 @@ jobs:
       - name: Deploy Web App
         run: kubectl apply -f k8s/web/production.yml
 
-      - name: Deploy Androi App
+      - name: Deploy Android App
         run: kubectl apply -f k8s/Android/production.yml
 
       - name: Deploy iOS App
