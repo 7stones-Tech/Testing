@@ -12,12 +12,17 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Install doctl (DigitalOcean CLI)
-        run: |
-          curl -sL https://github.com/digitalocean/doctl/releases/latest/download/doctl-$(uname -s)-$(uname -m) -o doctl
-          chmod +x doctl
-          sudo mv doctl /usr/local/bin/
+        
+- name: Verify doctl Installation
+  run: |
+    if ! command -v doctl &> /dev/null; then
+      echo "doctl not found, installing via Snap"
+      sudo snap install doctl
+    else
+      echo "doctl is already installed"
+    fi
+    doctl version
+      
           doctl version  # Verify installation
 
       - name: Configure kubectl
