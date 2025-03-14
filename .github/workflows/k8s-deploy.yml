@@ -1,47 +1,40 @@
-name: Deploy to DigitalOcean Kubernetes
+name: Deploy to Kubernetes
 
 on:
   push:
     branches:
-      - main  # Runs when code is pushed to 'main' branch
+      - main  # Deploy only when pushing to the main branch
+    paths:
+      - 'Podfile'
+      - 'README.md'
+      - '.github/workflows/**'
+      - 'k8s/**'  # Update if anything changes in the k8s directory
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        
-- name: Verify doctl Installation
-  run: |
-    if ! command -v doctl &> /dev/null; then
-      echo "doctl not found, installing via Snap"
-      sudo snap install doctl
-    else
-      echo "doctl is already installed"
-    fi
-    doctl version
-      
-          doctl version  # Verify installation
 
-           - name: Configure kubectl
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Authenticate with DigitalOcean
+        env:
+          DO_API_TOKEN: ${{ secrets.DO_ACCESS_TOKEN }}
+        run: doctl auth init --access-token "$DO_API_TOKEN"
+
+      - name: Set up Kubernetes
         env:
           KUBECONFIG_BASE64: ${{ secrets.KUBECONFIG_BASE64 }}
         run: |
-          echo "$KUBECONFIG_BASE64" | base64 -d > ~/.kube/config
-          chmod 600 ~/.kube/config  # Secure kubeconfig file
-          export KUBECONFIG=~/.kube/config  # Ensure kubectl uses this config
-          kubectl config get-contexts  # Verify available contexts
-          kubectl config use-context do-blr1-main-pool || kubectl config current-context
+          echo "$KUBECONFIG_BASE64" | base64 --decode > ~/.kube/config
+          chmod 600 ~/.kube/config
+          export KUBECONFIG=~/.kube/config
+          kubectl config use-context do-blr1-main-pool
 
-
-      - name: Deploy Web App
-        run: kubectl apply -f k8s/web/production.yml
-
-      - name: Deploy Android App
-        run: kubectl apply -f k8s/Android/production.yml
-
-      - name: Deploy iOS App
-        run: kubectl apply -f k8s/ios/production.yml
+      - name: Deploy iOS, Android, and Web Apps
+        run: |
+          kubectl apply -f k8s/ios/production.yml
+          kubectl apply -f k8s/Android/production.yml
+          kubectl apply -f k8s/web/production.yml
 
