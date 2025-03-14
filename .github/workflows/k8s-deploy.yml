@@ -22,13 +22,21 @@ jobs:
           echo "Installed doctl version:"
           /snap/bin/doctl version
 
-      - name: Authenticate with DigitalOcean
-  env:
-    DO_API_TOKEN: ${{ secrets.DO_ACCESS_TOKEN }}  # Ensure this secret exists
-  run: /usr/local/bin/doctl auth init --access-token "$DO_ACCESS_TOKEN"  # Update the correct path to doctl
+    name: Authenticate with DigitalOcean
+env:
+  DO_API_TOKEN: ${{ secrets.DO_ACCESS_TOKEN }}  # Ensure this secret exists
+steps:
+  - name: Install doctl
+    run: |
+      curl -sL https://github.com/digitalocean/doctl/releases/download/v1.88.0/doctl-1.88.0-linux-amd64.tar.gz | tar -xzv
+      sudo mv doctl /usr/local/bin/
 
-- name: Verify Authentication
-  run: /usr/local/bin/doctl account get  # Update the path as needed
+  - name: Authenticate with DigitalOcean
+    run: doctl auth init --access-token "$DO_API_TOKEN"
+
+  - name: Verify Authentication
+    run: doctl account get
+
 
 
       - name: Set up Kubernetes
