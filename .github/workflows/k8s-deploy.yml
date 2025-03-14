@@ -25,7 +25,7 @@ jobs:
       - name: Authenticate with DigitalOcean
         env:
           DO_API_TOKEN: ${{ secrets.DO_ACCESS_TOKEN }}  # Ensure this secret exists
-        run: /snap/bin/doctl auth init --access-token "$DO_API_TOKEN"
+        run: /snap/bin/doctl auth init --access-token "$DO_ACCESS_TOKEN"
 
       - name: Verify Authentication
         run: /snap/bin/doctl account get
