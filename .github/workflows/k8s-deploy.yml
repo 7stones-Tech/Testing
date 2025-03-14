@@ -9,20 +9,26 @@ on:
       - 'README.md'
       - '.github/workflows/**'
       - 'k8s/**'  # Update if anything changes in the k8s directory
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-           - name: Authenticate with DigitalOcean
-            env:
-    DO_API_TOKEN: ${{ secrets.DO_ACCESS_TOKEN }}
-  run: /snap/bin/doctl auth init --access-token "$DO_API_TOKEN"
+      - name: Install doctl (DigitalOcean CLI)
+        run: |
+          sudo snap install doctl
+          echo "Installed doctl version:"
+          /snap/bin/doctl version
 
+      - name: Authenticate with DigitalOcean
+        env:
+          DO_API_TOKEN: ${{ secrets.DO_ACCESS_TOKEN }}  # Ensure this secret exists
+        run: /snap/bin/doctl auth init --access-token "$DO_API_TOKEN"
+
+      - name: Verify Authentication
+        run: /snap/bin/doctl account get
 
 
       - name: Set up Kubernetes
