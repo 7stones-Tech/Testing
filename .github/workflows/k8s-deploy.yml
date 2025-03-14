@@ -24,9 +24,11 @@ jobs:
           DO_API_TOKEN: ${{ secrets.DO_ACCESS_TOKEN }}
         run: doctl auth init --access-token "$DO_API_TOKEN"
 
-      - name: Configure kubectl
-        run: |
-          echo "${{ secrets.KUBE_CONFIG }}" | base64 --decode > ~/.kube/config
+     - name: Configure kubectl
+  run: |
+    echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 --decode > ~/.kube/config
+    kubectl config use-context do-blr1-main-pool  # Change this to match your cluster
+
           kubectl config use-context do-blr1-main-pool  # Change this to match your cluster
 
       - name: Deploy Web App
